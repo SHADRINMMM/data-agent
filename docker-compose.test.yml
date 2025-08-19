@@ -1,0 +1,52 @@
+# docker-compose.test.yml
+
+services:
+  test-db:
+    image: postgres:15
+    container_name: agent_test_db
+    environment:
+      - POSTGRES_DB=testdb
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpassword
+    ports:
+      - "5433:5432" # Открываем порт для удобства отладки
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  agent:
+    build: .
+    container_name: agent_under_test
+    depends_on:
+      test-db:
+        condition: service_healthy # Запускаем агент только после того, как БД готова
+    env_file:
+      - .env.test
+    environment:
+      # Переопределяем хост БД, чтобы он указывал на сервис Docker
+      - DB_HOST=test-db
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: agent_test_runner
+    depends_on:
+      agent:
+        condition: service_healthy # Запускаем тесты только после того, как агент запущен
+    env_file:
+      - .env.test
+    environment: # <--- Добавьте эту секцию (или добавьте в существующую)
+      - PYTHONPATH=/app
+    command: flake8 agent # Снова проверяем код линтером
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

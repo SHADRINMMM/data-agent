@@ -1,0 +1,37 @@
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+  data_execution_agent:
+    container_name: causabi-data-execution-agent
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: uvicorn agent.main:app --host 0.0.0.0 --port 8080 --workers ${AGENT_WORKERS:-4}
+    
+    volumes:
+      - .:/app
+      # --- ДОБАВЬТЕ ЭТУ СТРОКУ ---
+      # Она "пробрасывает" сокет Docker с хост-машины внутрь контейнера,
+      # чтобы ваше приложение могло управлять Docker.
+      - /var/run/docker.sock:/var/run/docker.sock
+    
+    ports:
+      - "8080:8080"
+      
+    env_file:
+      - .env
+      
+    restart: unless-stopped
+
+    # --- ДОБАВЬТЕ ЭТОТ БЛОК ---
+    # Этот блок нужен, чтобы ваш сервис действительно подключился к сети app_network,
+    # которую вы определили ниже. Без этого он будет в сети по умолчанию.
+
+
+networks:
+  app_network:
+    # Эта настройка означает, что сеть app_network уже должна существовать в Docker.
+    # Если ее нет, создайте ее командой: docker network create app_network
+    external: true

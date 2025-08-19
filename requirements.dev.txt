@@ -1,0 +1,9 @@
+# requirements.dev.txt
+pytest
+pytest-asyncio
+httpx
+pytest-mock
+docker
+psycopg2-binary
+flake8
+black

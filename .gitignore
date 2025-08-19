@@ -1,0 +1,43 @@
+# Python Bytecode and Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+# Игнорируем всю папку виртуального окружения
+venv/
+# Также игнорируем файл конфигурации venv, если он в корне
+pyvenv.cfg
+
+# Файлы окружения (обычно содержат секреты)
+# Этот файл никогда не должен попадать в репозиторий
+.env
+
+# Если у вас есть другие файлы .env, которые специфичны для окружения, но не .env.example
+# Например, .env.local, .env.development
+# .env.*
+# Но убедитесь, что .env.example ОТСЛЕЖИВАЕТСЯ (если он есть и вы хотите его отслеживать)
+# !.env.example
+
+# Логи и временные файлы (если появятся)
+*.log
+*.tmp
+*.swp # Vim swap files
+
+# IDE / Редакторы (распространенные)
+.vscode/    # Visual Studio Code
+.idea/      # JetBrains IDEs (PyCharm, IntelliJ, etc.)
+# .project  # Eclipse
+# .classpath # Eclipse
+# *.sublime-project
+# *.sublime-workspace
+
+# Операционная система
+.DS_Store   # macOS
+Thumbs.db   # Windows
+
+# Зависимости или сборочные артефакты (если будут)
+# build/
+# dist/
+# *.egg-info/
