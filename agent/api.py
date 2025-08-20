@@ -1,4 +1,4 @@
-from typing import Annotated, Dict, Any
+from typing import Annotated, Dict, Any, Optional
 
 from fastapi import APIRouter, Depends, Security, HTTPException, status
 from fastapi.security import APIKeyHeader
