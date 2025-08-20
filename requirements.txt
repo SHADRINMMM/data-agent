@@ -4,7 +4,7 @@ uvicorn==0.34.3
 uvloop==0.21.0
 httpx==0.27.0
 loguru==0.7.2
-
+pyarrow==16.1.0
 # Settings and .env loading
 pydantic==2.8.2
 pydantic-settings==2.9.1
