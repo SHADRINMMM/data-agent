@@ -24,7 +24,8 @@ class ExecuteOnDataRequest(BaseModel):
     # 'input_data' - это словарь, где ключ - имя переменной,
     # а значение - JSON-представление DataFrame'а (orient='split'), 
     # с которым будет работать pandas.
-    input_data: Dict[str, Any] = Field(..., description="Словарь с входными данными в формате JSON (orient='split').")
+    cache_keys: Optional[Dict[str, str]] = Field(None, description="Словарь, где ключ - имя переменной, а значение - ключ кеша для загрузки DataFrame.")
+    input_data: Dict[str, Any] = Field({}, description="Словарь с входными данными в формате JSON (orient='split').")
 
 
 # --- Зависимость для проверки секретного токена ---
@@ -145,7 +146,8 @@ async def execute_on_data(payload: ExecuteOnDataRequest) -> EnrichedExecutionRes
     """
     result = await query_executor.run_python_on_data(
         python_code=payload.code,
-        input_data=payload.input_data
+        input_data=payload.input_data,
+        cache_keys=payload.cache_keys  # <-- ДОБАВЛЕНА ЭТА СТРОКА
     )
     
     if result.get("status") == "error":
