@@ -1,7 +1,8 @@
 # agent/services/data_profiler.py
 import asyncio
 from typing import Dict, Any, List
-from sqlalchemy import create_engine, text, func, inspect
+# --- ИЗМЕНЕНИЕ: Импортируем 'types' из sqlalchemy ---
+from sqlalchemy import create_engine, text, inspect, types as sqltypes
 from sqlalchemy.exc import SQLAlchemyError
 import pandas as pd
 from loguru import logger
@@ -55,10 +56,13 @@ class DataProfiler:
 
                 histogram = None
                 top_values = None
-                distinct_examples = None # <-- Инициализируем
+                distinct_examples = None
 
-                # 2. Логика для числовых типов (без изменений)
-                if any(isinstance(col_type, t) for t in (pd.api.types.is_numeric_dtype(col_type.__class__), 'INTEGER', 'BIGINT', 'FLOAT', 'NUMERIC', 'REAL')):
+                # --- ИЗМЕНЕНИЕ: Исправлена проверка на числовой тип ---
+                # Теперь мы используем корректную проверку через `isinstance` с базовым
+                # числовым типом из SQLAlchemy.
+                if isinstance(col_type, sqltypes.Numeric):
+                # --------------------------------------------------------
                     min_max_query = text(f'SELECT MIN("{column_name}"), MAX("{column_name}") FROM "{table_name}"')
                     min_val, max_val = connection.execute(min_max_query).one()
                     
@@ -80,7 +84,7 @@ class DataProfiler:
 
                 # 3. Логика для текстовых/категориальных/других типов
                 else:
-                    # 3a. Собираем топ-N самых частых значений (уже было)
+                    # 3a. Собираем топ-N самых частых значений
                     top_values_query = text(f"""
                         SELECT "{column_name}", COUNT(*) as count
                         FROM "{table_name}" WHERE "{column_name}" IS NOT NULL
@@ -89,7 +93,7 @@ class DataProfiler:
                     top_values_result = connection.execute(top_values_query).fetchall()
                     top_values = [TopValue(value=r[0], count=r[1]) for r in top_values_result]
 
-                    # --- 3b. НОВАЯ ЛОГИКА: Собираем примеры уникальных значений ---
+                    # 3b. Собираем примеры уникальных значений
                     examples_query = text(f"""
                         SELECT DISTINCT "{column_name}"
                         FROM "{table_name}"
@@ -97,9 +101,7 @@ class DataProfiler:
                         LIMIT {DISTINCT_EXAMPLES_COUNT};
                     """)
                     examples_result = connection.execute(examples_query).fetchall()
-                    # Извлекаем значения из кортежей (fetchall возвращает список кортежей)
                     distinct_examples = [r[0] for r in examples_result]
-                    # --- КОНЕЦ НОВОЙ ЛОГИКИ ---
                 
                 return null_count, histogram, top_values, distinct_examples
 
@@ -112,7 +114,7 @@ class DataProfiler:
             null_count=null_count, 
             histogram=histogram, 
             top_values=top_values,
-            distinct_examples=distinct_examples # <-- Добавляем новое поле в результат
+            distinct_examples=distinct_examples
         )
 
 # Создаем синглтон
