@@ -60,3 +60,4 @@ class EnrichedExecutionResult(BaseModel):
     status: str = Field("success", description="Статус выполнения.")
     metadata: ExecutionMetadata
     data: ExecutionData
+    cache_key: Optional[str] = Field(None, description="Ключ для доступа к результату в кеше, если он был сохранен.")
